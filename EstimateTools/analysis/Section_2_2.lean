@@ -115,7 +115,7 @@ theorem Nat.add_pos_left {a:Nat} (b:Nat) (ha: a.IsPos) : (a + b).IsPos := by
 
 theorem Nat.add_pos_right {a:Nat} (b:Nat) (ha: a.IsPos) : (b + a).IsPos := by
   rw [add_comm]
-  exact pos_add _ ha
+  exact Nat.add_pos_left _ ha
 
 /-- Corollary 2.2.9 (if sum vanishes, then summands vanish).-/
 theorem add_eq_zero (a b:Nat) (hab: a + b = 0) : a = 0 ∧ b = 0 := by
