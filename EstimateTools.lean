@@ -4,3 +4,4 @@ import EstimateTools.analysis.Section_2_epilogue
 import EstimateTools.analysis.Section_3_1
 import EstimateTools.analysis.Section_4_1
 import EstimateTools.OrderOfMagnitude
+import EstimateTools.Order
