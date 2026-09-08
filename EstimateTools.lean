@@ -5,3 +5,4 @@ import EstimateTools.analysis.Section_3_1
 import EstimateTools.analysis.Section_4_1
 import EstimateTools.OrderOfMagnitude
 import EstimateTools.Order
+import EstimateTools.Basic
