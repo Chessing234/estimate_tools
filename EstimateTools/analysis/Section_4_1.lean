@@ -246,14 +246,53 @@ theorem Int.gt_trans {a b c:Int} (hab: a > b) (hbc: b > c) : a > c := by sorry
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
 theorem Int.trichotomous' (a b c:Int) : a > b ∨ a < b ∨ a = b := by sorry
 
-/-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
-theorem Int.not_gt_and_lt (a b:Int) : ¬ (a > b ∧ a < b):= by sorry
+private lemma Int.add_natCast_eq (a b k:ℕ) : a — b + (k:Int) = (a + k) — b := by
+  simp only [Int.natCast_eq]
+
+private lemma Int.add_add_natCast (b:Int) (p q:ℕ) : (b + p) + q = b + (p + q) := by
+  obtain ⟨a, c, rfl⟩ := Int.eq_diff b
+  simp only [Int.add_natCast_eq, Int.natCast_eq]
+
+private lemma Int.add_natCast_right_cancel {n:Int} {k:ℕ} (h : n = n + k) : k = 0 := by
+  obtain ⟨a, b, rfl⟩ := Int.eq_diff n
+  simp only [Int.add_natCast_eq, Int.natCast_eq] at h
+  rw [Int.eq] at h
+  exact Nat.add_right_cancel h
 
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
-theorem Int.not_gt_and_eq (a b:Int) : ¬ (a > b ∧ a = b):= by sorry
+theorem Int.not_gt_and_lt (a b:Int) : ¬ (a > b ∧ a < b):= by
+  rintro ⟨hgt, hlt⟩
+  simp only [gt_iff_lt, Int.LT_inst] at hgt hlt
+  obtain ⟨p, hp, hbne⟩ := hgt
+  obtain ⟨q, hq, _⟩ := hlt
+  have hpq : p + q = 0 := by
+    have h : b = b + (p + q) := by
+      calc b = a + q := hq.symm
+        _ = (b + p) + q := by rw [← hp]
+        _ = b + (p + q) := Int.add_add_natCast b p q
+    exact Int.add_natCast_right_cancel h
+  rcases Nat.add_eq_zero.mp hpq with ⟨rfl, rfl⟩
+  have : a = b := by
+    calc a = b + p := hp
+      _ = b + 0 := rfl
+      _ = b := by
+        obtain ⟨x, y, rfl⟩ := Int.eq_diff b
+        simp only [Int.add_natCast_eq, Int.natCast_eq]
+  exact hbne this.symm
 
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
-theorem Int.not_lt_and_eq (a b:Int) : ¬ (a < b ∧ a = b):= by sorry
+theorem Int.not_gt_and_eq (a b:Int) : ¬ (a > b ∧ a = b):= by
+  rintro ⟨hgt, heq⟩
+  subst heq
+  simp only [gt_iff_lt, Int.LT_inst] at hgt
+  exact hgt.2 rfl
+
+/-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
+theorem Int.not_lt_and_eq (a b:Int) : ¬ (a < b ∧ a = b):= by
+  rintro ⟨hlt, heq⟩
+  subst heq
+  simp only [Int.LT_inst] at hlt
+  exact hlt.2 rfl
 
 /-- (Not from textbook) The order is decidable.  This exercise is only recommended for Lean experts. -/
 instance Int.decidableRel : DecidableRel (· ≤ · : Int → Int → Prop) := by
