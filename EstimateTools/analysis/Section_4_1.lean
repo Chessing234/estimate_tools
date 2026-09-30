@@ -246,38 +246,53 @@ theorem Int.gt_trans {a b c:Int} (hab: a > b) (hbc: b > c) : a > c := by sorry
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
 theorem Int.trichotomous' (a b c:Int) : a > b ∨ a < b ∨ a = b := by sorry
 
+private lemma Int.add_nat (a b k:ℕ) : a — b + k = (a + k) — b := rfl
+
+private lemma Int.add_zero_nat (b:Int) : b + (0:ℕ) = b := by
+  obtain ⟨x, y, rfl⟩ := Int.eq_diff b
+  rw [Int.add_nat]; rfl
+
 private lemma Int.add_natCast_eq (a b k:ℕ) : a — b + (k:Int) = (a + k) — b := by
-  simp only [Int.natCast_eq]
+  show a — b + (k — 0) = (a + k) — b
+  rfl
+
+private lemma Int.add_add_natCast_repr (a c p q:ℕ) :
+    ((a — c) + p) + q = (a — c) + (p + q) := by
+  have h1 : (a — c) + p = (a + p) — c := Int.add_nat a c p
+  have h2 : ((a + p) — c) + q = (a + p + q) — c := Int.add_nat (a + p) c q
+  have h3 : (a — c) + (p + q) = (a + (p + q)) — c := Int.add_nat a c (p + q)
+  calc ((a — c) + p) + q = (a + p) — c + q := by rw [h1]
+    _ = (a + p + q) — c := h2
+    _ = (a + (p + q)) — c := by rw [Nat.add_assoc]
+    _ = (a — c) + (p + q) := by rw [← h3]
 
 private lemma Int.add_add_natCast (b:Int) (p q:ℕ) : (b + p) + q = b + (p + q) := by
   obtain ⟨a, c, rfl⟩ := Int.eq_diff b
-  simp only [Int.add_natCast_eq, Int.natCast_eq]
+  exact Int.add_add_natCast_repr a c p q
 
 private lemma Int.add_natCast_right_cancel {n:Int} {k:ℕ} (h : n = n + k) : k = 0 := by
   obtain ⟨a, b, rfl⟩ := Int.eq_diff n
-  simp only [Int.add_natCast_eq, Int.natCast_eq] at h
-  rw [Int.eq] at h
-  exact Nat.add_right_cancel h
+  have heq : (a + k) — b = a — b := by
+    rw [← Int.add_nat]
+    exact h.symm
+  have hsum : a + k = a := Nat.add_right_cancel ((Int.eq (a + k) b a b).mp heq)
+  omega
 
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
 theorem Int.not_gt_and_lt (a b:Int) : ¬ (a > b ∧ a < b):= by
   rintro ⟨hgt, hlt⟩
   simp only [gt_iff_lt, Int.LT_inst] at hgt hlt
-  obtain ⟨p, hp, hbne⟩ := hgt
-  obtain ⟨q, hq, _⟩ := hlt
+  rcases hgt with ⟨⟨p, hp⟩, hbne⟩
+  rcases hlt with ⟨⟨q, hq⟩, _⟩
   have hpq : p + q = 0 := by
     have h : b = b + (p + q) := by
-      calc b = a + q := hq.symm
+      calc b = a + q := hq
         _ = (b + p) + q := by rw [← hp]
         _ = b + (p + q) := Int.add_add_natCast b p q
     exact Int.add_natCast_right_cancel h
-  rcases Nat.add_eq_zero.mp hpq with ⟨rfl, rfl⟩
-  have : a = b := by
-    calc a = b + p := hp
-      _ = b + 0 := rfl
-      _ = b := by
-        obtain ⟨x, y, rfl⟩ := Int.eq_diff b
-        simp only [Int.add_natCast_eq, Int.natCast_eq]
+  have hp0 : p = 0 := (Nat.add_eq_zero.mp hpq).1
+  have hp' : a = b + (0:ℕ) := by simpa [hp0] using hp
+  have : a = b := hp'.trans (Int.add_zero_nat b)
   exact hbne this.symm
 
 /-- Lemma 4.1.11(f) (Order trichotomy) / Exercise 4.1.7 -/
